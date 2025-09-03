@@ -99,7 +99,7 @@ sudo systemctl start docker
 sudo systemctl enable docker
 cd /home/ubuntu
 # Clona seu projeto do GitHub
-git clone https://github.com/seu-usuario/seu-repo.git app
+git clone git@github.com:LuizSilva-1/IA-Generativa-DebugAI.git app
 cd app
 sudo docker build -t debugai .
 # ⚠️ IMPORTANTE: aqui o .env deve estar no repositório ou ser criado manualmente
