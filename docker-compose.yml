@@ -1,0 +1,10 @@
+version: '3.9'
+services:
+  debugai:
+    build: .
+    container_name: debugai
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    restart: unless-stopped

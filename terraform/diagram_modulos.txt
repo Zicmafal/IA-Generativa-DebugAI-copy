@@ -1,0 +1,25 @@
+# Diagrama de módulos Terraform
+
+root main.tf (pasta terraform)
+│
+├── modules/security_group/main.tf
+│      └── Cria o Security Group (SG)
+│      └── Recebe variáveis do root
+│      └── Retorna o ID do SG
+│
+├── modules/ec2/main.tf
+│      └── Cria a instância EC2
+│      └── Recebe variáveis do root (AMI, tipo, subnet, SG, etc)
+│      └── Usa o ID do SG do módulo security_group
+│      └── Retorna o IP público da EC2
+│
+└── main.tf (root)
+       └── Chama os módulos
+       └── Passa variáveis para cada módulo
+       └── Usa outputs dos módulos
+
+# Fluxo:
+# 1. O root main.tf chama o módulo security_group, que cria o SG e retorna o ID.
+# 2. O root main.tf chama o módulo ec2, passando o ID do SG e outras variáveis.
+# 3. O módulo ec2 cria a instância e retorna o IP público.
+# 4. O root main.tf pode exibir o IP público como output.

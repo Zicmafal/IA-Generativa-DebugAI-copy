@@ -1,0 +1,21 @@
+# Ignorar arquivos sensíveis e desnecessários para o Git
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+.DS_Store
+.vscode/
+.idea/
+*.log
+debugai/
+# Ignorar arquivos de Docker
+*.pid
+docker-compose.override.yml
+# Ignorar arquivos de Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
