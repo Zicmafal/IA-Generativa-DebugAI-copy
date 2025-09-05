@@ -105,7 +105,7 @@ resource "aws_key_pair" "lab_key" {
 ###############################################################
 module "ec2_instance" {
   source            = "./modules/ec2"
-  ami               = "ami-0c02fb55956c7d316" # Ubuntu 22.04 LTS (us-east-1)
+  ami               = "ami-0360c520857e3138f" # Ubuntu 22.04 LTS (us-east-1)
   instance_type     = "t3.micro"
   subnet_id         = aws_subnet.main.id
   security_group_id = module.security_group.security_group_id
