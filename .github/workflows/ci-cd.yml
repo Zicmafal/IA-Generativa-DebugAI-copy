@@ -52,9 +52,20 @@ jobs:
       - name: Validar Terraform
         run: terraform -chdir=terraform validate
 
+      - name: Debug AWS secrets (temporário)
+        run: |
+          echo "AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID"
+          echo "AWS_SECRET_ACCESS_KEY length: ${#AWS_SECRET_ACCESS_KEY}"
+          echo "AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+
       - name: Aplicar Terraform (apenas para testes, não produção)
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
         run: terraform -chdir=terraform plan
         # Para aplicar de verdade, troque 'plan' por 'apply -auto-approve'
