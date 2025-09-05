@@ -19,6 +19,7 @@ resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_support   = true
   enable_dns_hostnames = true
+
   tags = {
     Name        = "main-vpc"
     Project     = "debugai"
@@ -31,6 +32,7 @@ resource "aws_subnet" "main" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.1.0/24"
   map_public_ip_on_launch = true
+
   tags = {
     Name        = "main-subnet"
     Project     = "debugai"
@@ -41,6 +43,7 @@ resource "aws_subnet" "main" {
 
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
+
   tags = {
     Name        = "main-igw"
     Project     = "debugai"
@@ -51,10 +54,12 @@ resource "aws_internet_gateway" "main" {
 
 resource "aws_route_table" "main" {
   vpc_id = aws_vpc.main.id
+
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.main.id
   }
+
   tags = {
     Name        = "main-route-table"
     Project     = "debugai"
@@ -81,23 +86,30 @@ module "security_group" {
 }
 
 ###############################################################
-# 🔹 KEY PAIR (criado na hora do apply)
+# KEY PAIR (flexível: local ou repo)
 ###############################################################
 resource "aws_key_pair" "lab_key" {
-  key_name   = "lab-key"
-  public_key = file("~/.ssh/id_rsa.pub")   # 🔹 sua chave pública local
+  key_name = "lab-key"
+
+  # Usa a chave pública local se existir (~/.ssh/id_rsa.pub),
+  # senão usa a chave salva no repositório (terraform/lab-key.pub).
+  public_key = fileexists("~/.ssh/id_rsa.pub") ? (
+    file("~/.ssh/id_rsa.pub")
+  ) : (
+    file("${path.module}/lab-key.pub")
+  )
 }
 
 ###############################################################
-# MÓDULO DE EC2
+# EC2 INSTANCE (via módulo)
 ###############################################################
 module "ec2_instance" {
   source            = "./modules/ec2"
-  ami               = "ami-0c02fb55956c7d316"
+  ami               = "ami-0c02fb55956c7d316" # Ubuntu 22.04 LTS (us-east-1)
   instance_type     = "t3.micro"
   subnet_id         = aws_subnet.main.id
   security_group_id = module.security_group.security_group_id
-  key_name          = aws_key_pair.lab_key.key_name   # 🔹 usa o Key Pair criado acima
+  key_name          = aws_key_pair.lab_key.key_name
   name              = "debugai-ec2"
 
   user_data         = <<-EOF
@@ -107,16 +119,24 @@ sudo apt-get install -y docker.io git
 sudo systemctl start docker
 sudo systemctl enable docker
 cd /home/ubuntu
+# Clona seu projeto do GitHub
 git clone git@github.com:LuizSilva-1/IA-Generativa-DebugAI.git app
 cd app
 sudo docker build -t debugai .
+# ⚠️ IMPORTANTE: .env deve estar no repositório ou ser criado manualmente
 sudo docker run -d -p 8501:8501 --name debugai debugai
 EOF
 }
 
 ###############################################################
-# OUTPUT DO IP PÚBLICO DA INSTÂNCIA
+# OUTPUTS
 ###############################################################
 output "instance_public_ip" {
-  value = module.ec2_instance.public_ip
+  description = "IP público da instância EC2"
+  value       = module.ec2_instance.public_ip
+}
+
+output "ssh_key_name" {
+  description = "Nome do par de chaves associado à instância"
+  value       = aws_key_pair.lab_key.key_name
 }
