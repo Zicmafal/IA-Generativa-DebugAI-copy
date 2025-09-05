@@ -123,16 +123,21 @@ apt-get install -y docker.io git
 systemctl start docker
 systemctl enable docker
 
+# Permite que o usuário ubuntu use docker sem sudo
+usermod -aG docker ubuntu
+
 # Vai para a home
 cd /home/ubuntu
 
-# Clona via HTTPS (sem SSH)
-git clone https://github.com/LuizSilva-1/IA-Generativa-DebugAI.git app || exit 1
+# Clona via HTTPS (sem SSH) apenas se não existir
+if [ ! -d "app" ]; then
+  git clone https://github.com/LuizSilva-1/IA-Generativa-DebugAI.git app
+fi
 cd app
 
 # Builda e roda o container
 docker build -t debugai .
-docker run -d -p 8501:8501 --name debugai debugai
+docker run -d -p 8501:8501 --restart always --name debugai debugai
 EOF
 }
 

@@ -3,7 +3,6 @@
 **/id_rsa.pub
 
 venv/
-.env
 __pycache__/
 *.pyc
 *.pyo
