@@ -8,7 +8,6 @@ terraform {
   }
 }
 
-# Provider AWS
 provider "aws" {
   region = "us-east-1"
 }
@@ -70,7 +69,7 @@ resource "aws_route_table_association" "main" {
 }
 
 ###############################################################
-# MÓDULO DE SECURITY GROUP
+# SECURITY GROUP
 ###############################################################
 module "security_group" {
   source            = "./modules/security_group"
@@ -82,15 +81,25 @@ module "security_group" {
 }
 
 ###############################################################
+# 🔹 KEY PAIR (criado na hora do apply)
+###############################################################
+resource "aws_key_pair" "lab_key" {
+  key_name   = "lab-key"
+  public_key = file("~/.ssh/id_rsa.pub")   # 🔹 sua chave pública local
+}
+
+###############################################################
 # MÓDULO DE EC2
 ###############################################################
 module "ec2_instance" {
   source            = "./modules/ec2"
-  ami               = "ami-0c02fb55956c7d316" # Ubuntu 22.04 LTS (us-east-1)
+  ami               = "ami-0c02fb55956c7d316"
   instance_type     = "t3.micro"
   subnet_id         = aws_subnet.main.id
   security_group_id = module.security_group.security_group_id
+  key_name          = aws_key_pair.lab_key.key_name   # 🔹 usa o Key Pair criado acima
   name              = "debugai-ec2"
+
   user_data         = <<-EOF
 #!/bin/bash
 sudo apt-get update
@@ -98,11 +107,9 @@ sudo apt-get install -y docker.io git
 sudo systemctl start docker
 sudo systemctl enable docker
 cd /home/ubuntu
-# Clona seu projeto do GitHub
 git clone git@github.com:LuizSilva-1/IA-Generativa-DebugAI.git app
 cd app
 sudo docker build -t debugai .
-# ⚠️ IMPORTANTE: aqui o .env deve estar no repositório ou ser criado manualmente
 sudo docker run -d -p 8501:8501 --name debugai debugai
 EOF
 }

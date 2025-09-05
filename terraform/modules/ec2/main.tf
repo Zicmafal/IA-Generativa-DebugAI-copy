@@ -2,15 +2,17 @@
 # MÓDULO EC2: Provisiona uma instância EC2 na AWS
 ###############################################################
 resource "aws_instance" "main" {
-  ami           = var.ami                 # AMI da instância (imagem do SO)
-  instance_type = var.instance_type       # Tipo da instância (ex: t3.micro)
-  subnet_id     = var.subnet_id           # Subnet onde a instância será criada
-  vpc_security_group_ids = [var.security_group_id] # Security Group associado
+  ami           = var.ami
+  instance_type = var.instance_type
+  subnet_id     = var.subnet_id
+  vpc_security_group_ids = [var.security_group_id]
 
+  # 🔹 Agora a instância recebe o par de chaves criado
+  key_name = var.key_name
 
-  user_data = var.user_data               # Script de inicialização (instala Docker, clona projeto, etc)
+  user_data = var.user_data
 
   tags = {
-    Name = var.name                       # Nome da instância para identificação
+    Name = var.name
   }
 }
