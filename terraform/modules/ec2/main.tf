@@ -6,7 +6,7 @@ resource "aws_instance" "main" {
   instance_type = var.instance_type       # Tipo da instância (ex: t3.micro)
   subnet_id     = var.subnet_id           # Subnet onde a instância será criada
   vpc_security_group_ids = [var.security_group_id] # Security Group associado
-  key_name      = var.key_name            # Chave SSH para acesso
+
 
   user_data = var.user_data               # Script de inicialização (instala Docker, clona projeto, etc)
 
