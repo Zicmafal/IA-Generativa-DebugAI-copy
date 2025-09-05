@@ -91,11 +91,9 @@ module "security_group" {
 resource "aws_key_pair" "lab_key" {
   key_name = "lab-key"
 
-  # Usa a chave pública local se existir (~/.ssh/id_rsa.pub),
-  # senão usa a chave salva no repositório (terraform/lab-key.pub).
-  public_key = fileexists("~/.ssh/id_rsa.pub") ? (
-    file("~/.ssh/id_rsa.pub")
-  ) : (
+  # Se existir ~/.ssh/id_rsa.pub, usa ele. Se não, usa o lab-key.pub do repo
+  public_key = try(
+    file(pathexpand("~/.ssh/id_rsa.pub")),
     file("${path.module}/lab-key.pub")
   )
 }
@@ -112,19 +110,29 @@ module "ec2_instance" {
   key_name          = aws_key_pair.lab_key.key_name
   name              = "debugai-ec2"
 
-  user_data         = <<-EOF
+  user_data = <<-EOF
 #!/bin/bash
-sudo apt-get update
-sudo apt-get install -y docker.io git
-sudo systemctl start docker
-sudo systemctl enable docker
+exec > /var/log/user_data.log 2>&1
+set -xe
+
+# Atualiza pacotes
+apt-get update -y
+apt-get install -y docker.io git
+
+# Habilita docker
+systemctl start docker
+systemctl enable docker
+
+# Vai para a home
 cd /home/ubuntu
-# Clona seu projeto do GitHub
-git clone git@github.com:LuizSilva-1/IA-Generativa-DebugAI.git app
+
+# Clona via HTTPS (sem SSH)
+git clone https://github.com/LuizSilva-1/IA-Generativa-DebugAI.git app || exit 1
 cd app
-sudo docker build -t debugai .
-# ⚠️ IMPORTANTE: .env deve estar no repositório ou ser criado manualmente
-sudo docker run -d -p 8501:8501 --name debugai debugai
+
+# Builda e roda o container
+docker build -t debugai .
+docker run -d -p 8501:8501 --name debugai debugai
 EOF
 }
 
