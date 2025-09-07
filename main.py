@@ -213,7 +213,7 @@ if prompt := st.chat_input("💬 Digite o erro ou log aqui..."):
         st.markdown(prompt)
     
     with st.chat_message("assistant"):
-        with st.spinner("🤔 Analisando o erro..."):
+        with st.spinner("🤔 Analisando..."):
             response = generate_response(st.session_state.model, prompt)
             st.markdown(response)
     
